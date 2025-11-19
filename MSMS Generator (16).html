@@ -1,0 +1,1052 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ultimate SpEd Caseload & Data Tracker: Student Entry & Print Fix</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* --- THEME CUSTOMIZATION VARIABLES --- */
+        body {
+            /* Default Theme: Professional Blue */
+            --theme-primary-color: #0070c7; 
+            --theme-secondary-color: #005bb5;
+            --theme-accent-color: #f0f6ff;
+            --theme-highlight-color: #ff9800;
+            --theme-success-color: #28a745;
+            --theme-danger-color: #dc3545;
+            --theme-text-color: #333;
+            --theme-font-main: 'Roboto', sans-serif;
+
+            font-family: var(--theme-font-main);
+            background: #f7f9fc;
+            margin: 0;
+            padding: 20px;
+            color: var(--theme-text-color);
+            transition: all 0.5s ease-in-out; 
+        }
+        
+        /* --- THEME OVERRIDES --- */
+        .theme-school {
+            --theme-primary-color: #5d4037; 
+            --theme-secondary-color: #795548;
+            --theme-accent-color: #fffde7; 
+            --theme-highlight-color: #ffc107;
+        }
+        .theme-fall {
+            --theme-primary-color: #c2185b; 
+            --theme-secondary-color: #e91e63;
+            --theme-accent-color: #ffebee;
+            --theme-highlight-color: #00bcd4; 
+        }
+        .theme-spring {
+            --theme-primary-color: #4caf50; 
+            --theme-secondary-color: #8bc34a; 
+            --theme-accent-color: #f1f8e9; 
+            --theme-highlight-color: #ffeb3b; 
+            --theme-text-color: #2e7d32;
+        }
+
+        /* --- General Styling --- */
+        .app-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            border-top: 10px solid var(--theme-primary-color);
+            padding: 30px;
+        }
+        h1 {
+            color: var(--theme-primary-color);
+            text-align: center;
+            font-size: 40px;
+            font-weight: 900;
+            font-family: 'Montserrat', sans-serif;
+        }
+        h2 {
+            color: var(--theme-secondary-color);
+            border-bottom: 3px solid var(--theme-primary-color);
+            padding-bottom: 8px;
+            margin-top: 35px;
+            font-size: 26px;
+        }
+        
+        /* Input Panel */
+        #inputPanel {
+            background: var(--theme-accent-color);
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 35px;
+            border: 1px solid var(--theme-primary-color);
+        }
+        
+        /* Goal Statement in Tracker */
+        #goalStatement {
+            background: var(--theme-accent-color);
+            border: 1px solid var(--theme-primary-color);
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            font-size: 16px;
+            line-height: 1.5;
+            color: var(--theme-text-color);
+            font-style: italic;
+        }
+
+        /* Goal Summary Table */
+        .goal-summary-table { width: 100%; border-collapse: collapse; margin-bottom: 25px; font-size: 13px; }
+        .goal-summary-table th, .goal-summary-table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        .goal-summary-table th { background-color: #f9f9f9; width: 25%; font-weight: 700; color: #555; }
+
+        /* Data Tracking Table */
+        #dataTable { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px; }
+        #dataTable th, #dataTable td { border: 1px solid #ccc; padding: 5px 8px; text-align: center; }
+        #dataTable th { background-color: var(--theme-primary-color); color: white; font-weight: 700; }
+        #dataTable select, #dataTable input[type="text"], #dataTable input[type="date"] {
+            width: 95%;
+            padding: 4px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+        
+        /* Met Target Colors */
+        .target-met-cell { font-weight: 700; color: #fff; background-color: #eee; }
+        .target-met-cell[data-value="✔️ Yes"] { background-color: var(--theme-success-color); }
+        .target-met-cell[data-value="❌ No"] { background-color: var(--theme-danger-color); }
+        .target-met-cell[data-value="Review Goal"] { background-color: var(--theme-highlight-color); } 
+
+        /* Data Table Controls */
+        #data-table-controls { display: flex; justify-content: flex-end; gap: 10px; margin-bottom: 10px; }
+
+        /* Export Buttons Container */
+        .export-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+
+        /* --- PRINT STYLES (CRITICAL FIX FOR DATA DISPLAY) --- */
+        @media print {
+            body { background: none !important; padding: 0 !important; margin: 0 auto !important; font-size: 10pt; width: 8.5in; color: #000 !important; }
+            .app-container { box-shadow: none !important; border: none !important; max-width: 7.5in !important; padding: 0.2in !important; width: 100% !important; border-top: none !important; }
+            
+            /* HIDE all input and control elements */
+            #inputPanel, #caseloadManagement, h1, #dataPreservationNote, .btn-primary, .btn-delete, .theme-selector, #data-table-controls, .export-controls, hr, .dropdown-control { 
+                display: none !important; 
+            }
+            
+            #trackerOutput { 
+                display: block !important; 
+                page-break-after: avoid !important; 
+                padding: 0 !important; 
+                min-height: auto !important; 
+            }
+
+            #goalStatement { border: 1px solid #000 !important; background: #fff !important; color: #000 !important; font-size: 11pt !important; }
+            .goal-summary-table { page-break-inside: avoid !important; }
+            .goal-summary-table th, .goal-summary-table td { border-color: #000 !important; }
+
+            /* Data Table (THE FIX) */
+            #dataTable { 
+                display: table !important; 
+                font-size: 10pt !important; 
+                margin-top: 10px !important; 
+                width: 100% !important;
+                page-break-inside: avoid !important;
+            }
+            #dataTable th, #dataTable td { 
+                padding: 3px 5px !important; 
+                border-color: #000 !important;
+                line-height: 1.2;
+            }
+            
+            /* FIX: Hide the form elements, but show their **content** by forcing it to display as a block/inline element */
+            #dataTable input[type="text"], 
+            #dataTable input[type="date"] {
+                display: inline-block !important; /* Show input values as text */
+                border: none !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                width: auto !important;
+                background: none !important;
+                color: #000 !important;
+            }
+            #dataTable select {
+                display: inline-block !important; /* Show dropdown selections as text */
+                border: none !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                width: auto !important;
+                background: none !important;
+                color: #000 !important;
+                -webkit-appearance: none; /* Hide default select arrow */
+                -moz-appearance: none;
+                appearance: none;
+            }
+            
+            /* Print colors */
+            #dataTable th {
+                background-color: #ddd !important;
+                color: #000 !important;
+                -webkit-print-color-adjust: exact !important; 
+                print-color-adjust: exact !important;
+            }
+
+            .target-met-cell[data-value="✔️ Yes"] { background-color: #e6ffe6 !important; color: #000 !important; -webkit-print-color-adjust: exact !important; color-adjust: exact !important; }
+            .target-met-cell[data-value="❌ No"] { background-color: #ffe6e6 !important; color: #000 !important; -webkit-print-color-adjust: exact !important; color-adjust: exact !important; }
+            .target-met-cell[data-value="Review Goal"] { background-color: #fff8e1 !important; color: #000 !important; -webkit-print-color-adjust: exact !important; color-adjust: exact !important; }
+        }
+    </style>
+</head>
+
+<body class="theme-default">
+
+<div class="app-container">
+    <h1>🎯 Professional SpEd Data Tracker</h1>
+    <p style="text-align: center; font-style: italic; color: #555;">ID-enforced multi-student system with advanced goal parsing, print, and CSV export capabilities.</p>
+
+    <div id="inputPanel">
+        <h2>📝 Goal Definition & Automated Extraction</h2>
+
+        <div class="control-grid">
+            <div class="control-group">
+                <label for="studentName">Student Name (Required):</label>
+                <input type="text" id="studentName" placeholder="e.g., Alex B." required> 
+            </div>
+            <div class="control-group">
+                <label for="studentID">**Student ID** (Required & Unique Key):</label>
+                <input type="text" id="studentID" placeholder="e.g., S12345" class="required-id" required> 
+            </div>
+            <div class="control-group">
+                <label for="goalSubjectArea">Goal Subject Area:</label>
+                <select id="goalSubjectArea" onchange="checkCustomOption(this, 'subject')">
+                    <option value="reading">Reading (Comprehension/Fluency)</option>
+                    <option value="math">Mathematics (Calculation/Reasoning)</option>
+                    <option value="writing">Writing (Composition/Mechanics)</option>
+                    <option value="behavior">Behavior/Self-Regulation</option>
+                    <option value="social">Social/Communication Skills</option>
+                    <option value="science">Science</option>
+                    <option value="socialstudies">Social Studies</option>
+                    <option value="transition">Vocational/Life Skills</option>
+                    <option value="other_subject">(Other/Custom Subject...)</option>
+                </select>
+            </div>
+        </div>
+
+        <h3>Full Goal Text & Automated Parsing</h3>
+        <div class="control-group">
+            <label for="existingGoalText">**STEP 1:** Paste Full SMART Goal Text HERE (Auto-extracts metrics):</label>
+            <textarea id="existingGoalText" placeholder="Example: By the annual review, given a reading passage, the student will answer 7/10 comprehension questions with 80% accuracy across 4 consecutive probes, increasing from a baseline of 3/10 questions. This must be the unique text for the goal." oninput="autoParseGoal(this.value)" required></textarea>
+        </div>
+
+        <div class="control-grid">
+            <div class="control-group">
+                <label for="timeFrame" class="auto-parse-field">Time Frame</label>
+                <input type="text" id="timeFrame" placeholder="e.g., By the annual review" required>
+            </div>
+            <div class="control-group">
+                <label for="baselineData" class="auto-parse-field">Baseline Data</label>
+                <input type="text" id="baselineData" placeholder="e.g., 3/10 questions">
+            </div>
+            <div class="control-group">
+                <label for="targetPerformance" class="auto-parse-field">Target Performance</label>
+                <input type="text" id="targetPerformance" placeholder="e.g., 7/10, 80%, 10 minutes" onkeyup="checkMetricType()" required>
+            </div>
+            <div class="control-group">
+                <label for="masteryCriteria" class="auto-parse-field">Mastery Criteria</label>
+                <input type="text" id="masteryCriteria" placeholder="e.g., across 4 consecutive probes" required>
+            </div>
+        </div>
+        
+        <div class="control-grid" style="grid-template-columns: 1fr;">
+            <div class="control-group">
+                <label for="evaluationType" style="font-size: 16px; color: var(--theme-danger-color); font-weight: 900;">AUTOMATIC METRIC TYPE:</label>
+                <input type="text" id="evaluationType" placeholder="e.g., Accuracy, Frequency, Duration" readonly style="background-color: var(--theme-highlight-color); color: white; font-weight: 700;">
+            </div>
+        </div>
+        
+        <div class="control-group" style="margin-top: 20px;">
+            <h3>Accommodation Management (Editable List)</h3>
+            <label for="newAccommodation">Add a new accommodation to the list:</label>
+            <div class="dropdown-control">
+                <input type="text" id="newAccommodation" placeholder="e.g., Extended Time">
+                <button class="add" onclick="manageAccommodation('add')">➕ Add</button>
+                <button class="remove" onclick="manageAccommodation('remove')">➖ Remove Last</button>
+            </div>
+             <p style="font-size: 12px; margin-top: 5px;">*Current Accommodations: <span id="currentAccommodationsList">None Added</span></p>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px;">
+            <button id="addGoalBtn" class="btn-primary" onclick="addGoal()">➕ Finalize and Add Goal to Caseload</button>
+            <button class="btn-primary" style="background-color: #6c757d;" onclick="clearInputFields()">✨ Start New Goal/Student Entry</button>
+        </div>
+    </div>
+    
+    <hr style="margin: 30px 0;">
+    
+    <h2>📊 Caseload Data Tracking Interface</h2>
+    <div id="caseloadManagement">
+        <div class="control-grid" style="grid-template-columns: 1fr 1fr 1fr;">
+            <div class="control-group">
+                <label for="studentSelect">Select Student:</label>
+                <select id="studentSelect" onchange="loadStudentGoals()">
+                    <option value="" disabled selected>--- Select Student ---</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label for="goalSelect">Select Goal for Data Entry:</label>
+                <select id="goalSelect" onchange="generateTracker()">
+                    <option value="" disabled selected>--- Select Goal ---</option>
+                </select>
+            </div>
+            <div class="control-group theme-selector">
+                 <label for="decorativeTheme">Tracker Theme:</label>
+                 <select id="decorativeTheme" onchange="applyTheme()">
+                     <option value="default">Academic Pro 💼</option>
+                     <option value="school">Paper & Pencil ✏️</option>
+                     <option value="fall">Deep Rose 🌸</option>
+                     <option value="spring">Mint & Spring 🌳</option>
+                 </select>
+            </div>
+        </div>
+    </div>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+        <button class="btn-primary" style="margin-top: 0;" onclick="saveTrackerData()">✅ Update Data Log (Saves Data in this Session)</button>
+        <button class="btn-delete" style="margin-top: 0;" onclick="deleteSelectedGoal()">🗑️ Delete Selected Goal</button>
+    </div>
+    
+    <div class="export-controls">
+        <button class="btn-primary" style="background-color: #28a745;" onclick="exportCurrentGoalData()">⬇️ Export Current Goal Data (CSV/Excel)</button>
+        <button class="btn-primary" style="background-color: #17a2b8;" onclick="exportAllCaseloadData()">⬇️ Export ALL Caseload Data (CSV/Excel)</button>
+    </div>
+
+    <div id="trackerOutput">
+        <p style="text-align: center; color: #999; padding-top: 150px;">
+            Add a new goal above, then select the Student and Goal here to begin data entry.
+        </p>
+    </div>
+
+    <div id="dataPreservationNote">
+        **⚠️ Data Persistence Warning:** Data is session-based. To **save your caseload permanently**, you **MUST** use your browser's "Save Page As" feature (**Ctrl+S** or **Cmd+S**) and save the complete HTML file.
+    </div>
+
+    <button class="btn-primary" style="background-color: #00bcd4; margin-top: 5px;" onclick="printTracker()">🖨️ Print Current Data Sheet & Documentation (Single Page Optimized)</button>
+
+</div>
+
+<script>
+    // --- SIMULATED DATABASE ---
+    let caseload = []; 
+    let accommodationsList = ["None Used", "Extended Time", "Frequent Breaks", "Verbal Prompts/Cues", "Graphic Organizer", "Small Group Setting", "Reduced Assignments", "Check for Understanding"];
+    let maxDataRows = 1;
+
+    // --- SUPPORT DATA (COMPREHENSIVE PARSING) ---
+    const SUPPORT_OPTIONS = {
+        reading: ["Whole Group Instruction", "Small Group Reading", "Independent Reading", "Assessment Probe"],
+        math: ["Calculation Drill", "Word Problems", "Math Assessment", "Real-World Application"],
+        writing: ["Essay Drafting", "Editing/Revising Practice", "Dictation/Keyboarding", "Journaling"],
+        behavior: ["During Transition", "During Independent Work", "During Peer Interaction", "During Direct Instruction"],
+        social: ["Role-Playing Session", "Small Group Collaboration", "Unstructured Time (Recess)", "Formal Lesson"],
+        science: ["Lab Report Writing", "Experiment/Procedure", "Class Discussion", "Assessment"],
+        socialstudies: ["Map Skills", "Primary Source Analysis", "Lecture Notes", "Report Writing"],
+        transition: ["Job Site Practice", "Daily Living Skill Practice", "Following Schedule", "Monetary Exchange"],
+        other: ["Custom Context 1", "Custom Context 2"]
+    };
+    
+    // --- INITIALIZATION ---
+    document.addEventListener('DOMContentLoaded', () => {
+        applyTheme();
+        loadStudentOptions();
+        updateAccommodationsDisplay();
+    });
+
+    function applyTheme() {
+        const theme = document.getElementById('decorativeTheme').value;
+        const body = document.body;
+        body.className = 'theme-' + theme; 
+        body.style.setProperty('--theme-primary-color', getComputedStyle(body).getPropertyValue('--theme-primary-color'));
+    }
+
+    // --- NEW: Clear input fields to start a fresh entry ---
+    function clearInputFields() {
+        if (!confirm("Are you sure you want to clear the current input panel to start a new student or goal? (Ensure you've saved any pending goal first.)")) {
+            return;
+        }
+
+        document.getElementById('studentName').value = '';
+        document.getElementById('studentID').value = '';
+        document.getElementById('goalSubjectArea').value = 'reading'; // Reset to default
+        document.getElementById('existingGoalText').value = '';
+        document.getElementById('timeFrame').value = '';
+        document.getElementById('baselineData').value = '';
+        document.getElementById('targetPerformance').value = '';
+        document.getElementById('masteryCriteria').value = '';
+        document.getElementById('evaluationType').value = '';
+        document.getElementById('newAccommodation').value = '';
+
+        alert("Input fields cleared. Ready for a new student or goal entry.");
+    }
+    
+    function checkCustomOption(selectElement, type) {
+        if (selectElement.value.includes('other') || selectElement.value.includes('custom')) {
+            let customValue = prompt(`Enter custom ${type}:`);
+            if (customValue && customValue.trim()) {
+                const normalizedValue = customValue.trim().toLowerCase().replace(/\s/g, '');
+                
+                if (Array.from(selectElement.options).some(opt => opt.value === normalizedValue)) {
+                    selectElement.value = normalizedValue;
+                    return;
+                }
+                
+                const newOption = document.createElement('option');
+                newOption.value = normalizedValue;
+                newOption.textContent = customValue.trim();
+                selectElement.appendChild(newOption);
+                selectElement.value = normalizedValue;
+                
+                if (type === 'subject') {
+                    SUPPORT_OPTIONS[normalizedValue] = [`${customValue.trim()} Task 1`, `${customValue.trim()} Assessment`];
+                } else if (type === 'accommodation' && !accommodationsList.includes(customValue.trim())) {
+                    accommodationsList.push(customValue.trim());
+                    updateAccommodationsDisplay();
+                }
+            } else {
+                selectElement.value = selectElement.options[0].value;
+            }
+        }
+    }
+
+    function updateAccommodationsDisplay() {
+        const displayList = accommodationsList.filter(a => a !== "None Used");
+        document.getElementById('currentAccommodationsList').textContent = displayList.length > 0 ? displayList.join(', ') : 'None Added';
+    }
+    
+    function manageAccommodation(action) {
+        const input = document.getElementById('newAccommodation');
+        const value = input.value.trim();
+
+        if (action === 'add' && value) {
+            if (!accommodationsList.includes(value)) {
+                accommodationsList.push(value);
+                accommodationsList.sort((a, b) => a === "None Used" ? -1 : (a.localeCompare(b)));
+                updateAccommodationsDisplay();
+                input.value = '';
+                alert(`Accommodation '${value}' added.`);
+            } else {
+                alert(`Accommodation '${value}' is already in the list.`);
+            }
+        } else if (action === 'remove' && accommodationsList.length > 1) {
+            const lastNonDefaultIndex = accommodationsList.slice(1).length;
+            const removedItem = accommodationsList.splice(lastNonDefaultIndex + 1, 1)[0]; 
+
+            updateAccommodationsDisplay();
+            if (removedItem) {
+                alert(`Accommodation '${removedItem}' removed.`);
+            } else {
+                alert("Only default or user-added accommodations can be removed.");
+            }
+        }
+    }
+
+    // --- GOAL PARSING LOGIC (COMPREHENSIVE) ---
+    
+    function autoParseGoal(goalText) {
+        const text = goalText.toLowerCase();
+        
+        // Time Frame 
+        const timeFrameMatch = text.match(/(by the\s+[^,.]+)|(end of the\s+[^,.]+)|(within\s+\d+\s+[^,.]+)|(on or before\s+[^,.]+)/);
+        document.getElementById('timeFrame').value = timeFrameMatch ? timeFrameMatch[0].trim().replace(/\.$/, '') : 'Review Timeframe';
+
+        // Baseline Data 
+        const baselineMatch = text.match(/(from a baseline of\s+[^,.]+)|(from a\s+baseline\s+[^,.]+)|(increasing from\s+[^,.]+)|(current status is\s+[^,.]+)|(starting at\s+[^,.]+)/);
+        let baselineData = baselineMatch ? baselineMatch[0].replace(/from a baseline of|from a baseline|increasing from|current status is|starting at/g, '').trim().replace(/\.$/, '') : '';
+        document.getElementById('baselineData').value = baselineData || 'No Baseline Found';
+
+        // Target Performance 
+        const targetMatch = text.match(/(\d+[\.\/]\d+\s+[^,.]+)|(\d+% (accuracy|mastery|correct)\s*[^,.]*)|(\d+\s+(minutes|seconds|trials|times|steps|behaviors|errors)\s*[^,.]*)/g);
+        let targetData = targetMatch ? targetMatch[targetMatch.length - 1].trim().replace(/\.$/, '') : 'Review Target';
+        document.getElementById('targetPerformance').value = targetData;
+
+        // Mastery Criteria 
+        const masteryMatch = text.match(/(across\s+[^,.]+ probes?)|(over\s+[^,.]+ probes?)|(\d+\s+consecutive\s+[^,.]+)|(\d+\s+sessions\s+[^,.]*)|(with\s+no\s+more\s+than\s+[^,.]+)/);
+        document.getElementById('masteryCriteria').value = masteryMatch ? masteryMatch[0].trim().replace(/\.$/, '') : 'Review Mastery Criteria';
+        
+        checkMetricType();
+    }
+    
+    function checkMetricType() {
+        const target = document.getElementById('targetPerformance').value.toLowerCase();
+        let type = 'Review Goal';
+
+        if (target.includes('/') || target.includes('%') || target.includes('accuracy') || target.includes('correct') || target.includes('mastery')) {
+            type = 'Accuracy';
+        } else if (target.includes('min') || target.includes('sec') || target.includes('duration') || target.includes('latency') || target.includes('minutes') || target.includes('seconds')) {
+            type = 'Duration';
+        } else if (target.includes('times') || target.includes('count') || target.includes('frequency') || target.includes('trials') || target.includes('steps') || target.includes('behaviors')) {
+            type = 'Frequency';
+        }
+        document.getElementById('evaluationType').value = type;
+    }
+    
+    // --- ADD GOAL LOGIC ---
+
+    function addGoal() {
+        const name = document.getElementById('studentName').value.trim();
+        const studentID = document.getElementById('studentID').value.trim();
+        const subjectSelect = document.getElementById('goalSubjectArea');
+        const subjectValue = subjectSelect.value;
+        const subjectText = subjectSelect.options[subjectSelect.selectedIndex].text;
+        const existingGoalText = document.getElementById('existingGoalText').value.trim();
+        
+        if (!name || !studentID || !existingGoalText) {
+            alert("🛑 Student Name, Student ID, and the Full Goal Text are required.");
+            return;
+        }
+        if (!document.getElementById('timeFrame').value.trim() || !document.getElementById('targetPerformance').value.trim() || !document.getElementById('masteryCriteria').value.trim()) {
+             if (!confirm("⚠️ Warning: One or more key goal metrics (Time Frame, Target, Mastery) are empty or not correctly parsed. Do you want to proceed anyway?")) {
+                return;
+             }
+        }
+        
+        let studentRecord = caseload.find(s => s.studentID === studentID);
+        if (studentRecord) {
+            const isDuplicate = studentRecord.goals.some(g => g.existingGoalText.toLowerCase() === existingGoalText.toLowerCase());
+            if (isDuplicate) {
+                alert("🛑 Goal Duplication Detected: This exact goal text already exists for this Student ID. Please ensure each goal is unique.");
+                return;
+            }
+        }
+
+        const newGoalId = `${studentID}-${subjectValue}-${Date.now()}`;
+
+        const newGoal = {
+            id: newGoalId,
+            studentName: name,
+            studentID: studentID,
+            goalSubjectArea: subjectText,
+            timeFrame: document.getElementById('timeFrame').value.trim(),
+            targetPerformance: document.getElementById('targetPerformance').value.trim(),
+            masteryCriteria: document.getElementById('masteryCriteria').value.trim(),
+            existingGoalText: existingGoalText,
+            evaluationType: document.getElementById('evaluationType').value,
+            baselineData: document.getElementById('baselineData').value.trim(),
+            contextType: subjectValue, 
+            dataLog: []
+        };
+        
+        if (studentRecord) {
+            if (studentRecord.studentName !== name && confirm(`Student ID ${studentID} exists as "${studentRecord.studentName}". Update name to "${name}"?`)) {
+                studentRecord.studentName = name;
+            }
+            studentRecord.goals.push(newGoal);
+        } else {
+            studentRecord = { studentName: name, studentID: studentID, goals: [] };
+            studentRecord.goals.push(newGoal);
+            caseload.push(studentRecord);
+        }
+
+        loadStudentOptions();
+        document.getElementById('studentSelect').value = studentID; 
+        loadStudentGoals();
+        document.getElementById('goalSelect').value = newGoalId; 
+        
+        maxDataRows = 1; 
+        generateTracker();
+        
+        // Clear student name/ID and goal specific fields to allow for quick new entry
+        document.getElementById('timeFrame').value = '';
+        document.getElementById('targetPerformance').value = '';
+        document.getElementById('masteryCriteria').value = '';
+        document.getElementById('existingGoalText').value = '';
+        document.getElementById('evaluationType').value = '';
+        document.getElementById('baselineData').value = '';
+        
+        alert(`Goal for ${name} (ID: ${studentID}) added successfully! Use the 'Start New Goal/Student Entry' button above if you need to clear the Student Name/ID fields.`);
+    }
+
+    // --- CASELOD MANAGEMENT & SELECTION ---
+    
+    function getGoalById(id) {
+        for (const student of caseload) {
+            const goal = student.goals.find(g => g.id === id);
+            if (goal) return goal;
+        }
+        return null;
+    }
+    
+    function loadStudentOptions() {
+        const select = document.getElementById('studentSelect');
+        const uniqueStudents = caseload.sort((a, b) => a.studentName.localeCompare(b.studentName));
+        
+        select.innerHTML = '<option value="" disabled selected>--- Select Student ---</option>'; 
+        uniqueStudents.forEach(student => {
+            const option = document.createElement('option');
+            option.value = student.studentID; 
+            option.textContent = `${student.studentName} (ID: ${student.studentID})`;
+            select.appendChild(option);
+        });
+        
+        loadStudentGoals(); 
+    }
+
+    function loadStudentGoals() {
+        const selectedStudentID = document.getElementById('studentSelect').value;
+        const goalSelect = document.getElementById('goalSelect');
+        
+        goalSelect.innerHTML = '<option value="" disabled selected>--- Select Goal ---</option>';
+        
+        if (!selectedStudentID) {
+            document.getElementById('trackerOutput').innerHTML = '<p style="text-align: center; color: #999; padding-top: 150px;">Select a student to view their goals.</p>';
+            return;
+        }
+
+        const student = caseload.find(s => s.studentID === selectedStudentID);
+        if (!student || !student.goals.length) return;
+        
+        student.goals.forEach(goal => {
+            const option = document.createElement('option');
+            option.value = goal.id;
+            option.textContent = `${goal.goalSubjectArea} (Goal ID: ${goal.id.slice(-4)})`;
+            goalSelect.appendChild(option);
+        });
+        
+        if (student.goals.length > 0) {
+            const currentSelectedGoal = document.getElementById('goalSelect').value;
+            if (!getGoalById(currentSelectedGoal)) {
+                 goalSelect.value = student.goals[0].id;
+            }
+            generateTracker();
+        }
+    }
+    
+    function deleteSelectedGoal() {
+        const selectedId = document.getElementById('goalSelect').value;
+        const selectedStudentID = document.getElementById('studentSelect').value;
+
+        if (!selectedId || !selectedStudentID) {
+            alert("Please select a student and a goal to delete.");
+            return;
+        }
+        
+        const student = caseload.find(s => s.studentID === selectedStudentID);
+        const goal = student.goals.find(g => g.id === selectedId);
+
+        if (confirm(`⚠️ WARNING: PERMANENTLY delete the goal for ${goal.studentName} (ID: ${selectedStudentID}) - ${goal.goalSubjectArea} and ALL its logged data?`)) {
+            
+            student.goals = student.goals.filter(g => g.id !== selectedId);
+            
+            if (student.goals.length === 0) {
+                 caseload = caseload.filter(s => s.studentID !== selectedStudentID);
+                 document.getElementById('studentSelect').value = ''; 
+            }
+
+            loadStudentOptions(); 
+            alert("Goal deleted successfully.");
+        }
+    }
+
+    // --- TRACKER GENERATION & DATA ENTRY ---
+
+    function generateGoalSummaryTable(goal) {
+        return `
+            <table class="goal-summary-table">
+                <tr>
+                    <th>Student Name:</th><td>${goal.studentName}</td>
+                    <th>Student ID:</th><td style="font-weight: 700;">${goal.studentID}</td>
+                    <th>Subject Area:</th><td>${goal.goalSubjectArea}</td>
+                </tr>
+                <tr>
+                    <th>Timeframe:</th><td>${goal.timeFrame}</td>
+                    <th>Mastery Criteria:</th><td>${goal.masteryCriteria}</td>
+                    <th>Baseline Data:</th><td>${goal.baselineData}</td>
+                </tr>
+                <tr>
+                    <th>Target Performance:</th><td style="font-weight: 700; color: var(--theme-danger-color);">${goal.targetPerformance}</td>
+                    <th>Evaluation Type:</th><td colspan="3" style="font-weight: 700; color: var(--theme-danger-color);">${goal.evaluationType.toUpperCase()} Tracking</td>
+                </tr>
+            </table>
+        `;
+    }
+
+    function generateTracker() {
+        const selectedId = document.getElementById('goalSelect').value;
+        const currentGoal = getGoalById(selectedId);
+        const outputDiv = document.getElementById('trackerOutput');
+        
+        if (!currentGoal) {
+             outputDiv.innerHTML = '<p style="text-align: center; color: #999; padding-top: 200px;">Select a goal to view the tracker.</p>';
+             return;
+        }
+        
+        maxDataRows = Math.max(currentGoal.dataLog.length, 1);
+
+        let goalHtml = `<div id="goalStatement">${currentGoal.existingGoalText}</div>`;
+        let summaryHtml = generateGoalSummaryTable(currentGoal);
+        let dataSheetHtml = generateDynamicTracker(currentGoal);
+        
+        outputDiv.innerHTML = goalHtml + summaryHtml + dataSheetHtml;
+    }
+    
+    function generateDynamicTracker(goal) {
+        const rows = [];
+        const contextOptions = SUPPORT_OPTIONS[goal.contextType] || SUPPORT_OPTIONS.other;
+
+        for (let i = 0; i < maxDataRows; i++) {
+            rows.push(renderDataRow(i, goal, contextOptions, accommodationsList, goal.dataLog[i]));
+        }
+
+        const performanceHeader = {
+            'Accuracy': 'Correct/Total or % (e.g., 8/10)',
+            'Duration': 'Duration/Time (e.g., 7 min)',
+            'Frequency': 'Count (e.g., 4 times)',
+            'Review Goal': 'Performance Data'
+        }[goal.evaluationType];
+
+
+        return `
+            <div id="data-table-controls">
+                 <button class="row-control-btn" onclick="addRow()">➕ Add Row</button>
+                 <button class="row-control-btn" onclick="deleteLastRow()">➖ Delete Last Row</button>
+            </div>
+            <p style="font-size: 12px; margin-bottom: 10px;">Goal Target: **${goal.targetPerformance}** | Metric Type: **${goal.evaluationType.toUpperCase()}**</p>
+            <table id="dataTable">
+                <thead>
+                    <tr>
+                        <th style="width: 5%;">#</th>
+                        <th style="width: 12%;">Date</th>
+                        <th style="width: 15%;">Data Recorded (${performanceHeader})</th>
+                        <th style="width: 15%;">Context/Setting</th>
+                        <th style="width: 18%;">Accommodation Used</th>
+                        <th style="width: 10%;">Goal Met?</th>
+                        <th style="width: 25%;">Observation Notes</th>
+                    </tr>
+                </thead>
+                <tbody>${rows.join('')}</tbody>
+            </table>
+            <div class="data-footer">
+                <span>Total Data Points Logged: ${goal.dataLog.length}</span>
+                <span>Mastery Requirement: ${goal.masteryCriteria}</span>
+            </div>
+        `;
+    }
+
+    function renderDataRow(index, goal, contextOptions, accommodationsOptions, data = null) {
+        const performancePlaceholder = {
+            'Accuracy': 'e.g., 6/10 or 75%',
+            'Duration': 'e.g., 7 minutes or 45 sec',
+            'Frequency': 'e.g., 4 times or 7 trials',
+            'Review Goal': 'Enter data'
+        }[goal.evaluationType];
+
+        const dateValue = data ? data.date : '';
+        const performanceValue = data ? data.performance : '';
+        const contextValue = data ? data.context : '';
+        const accommodationValue = data ? data.accommodation : '';
+        const notesValue = data ? data.notes : '';
+        const targetMet = data ? checkTargetMet(goal, data.performance) : '';
+
+        // Context Dropdown
+        const contextDropdown = `
+            <select name="context_${index}" class="tracker-input" onchange="checkCustomOption(this, 'context')">
+                <option value="${contextValue}" selected>${contextValue || '-- Select Context --'}</option>
+                ${contextOptions.filter(o => o !== contextValue).map(option => 
+                    `<option value="${option}">${option}</option>`
+                ).join('')}
+                <option value="other_context">(Other/Custom Context...)</option>
+            </select>
+        `;
+
+        // Accommodation Dropdown
+        const accommodationDropdown = `
+            <select name="accommodation_${index}" class="tracker-input" onchange="checkCustomOption(this, 'accommodation')">
+                <option value="${accommodationValue}" selected>${accommodationValue || '-- Select Accom. --'}</option>
+                ${accommodationsOptions.filter(o => o !== accommodationValue).map(option => 
+                    `<option value="${option}">${option}</option>`
+                ).join('')}
+                 <option value="other_accommodation">(Other/Custom Accom...)</option>
+            </select>
+        `;
+
+        return `
+            <tr data-index="${index}">
+                <td>${index + 1}</td>
+                <td><input type="date" value="${dateValue}" name="date_${index}" class="tracker-input"></td>
+                <td>
+                    <input type="text" value="${performanceValue}" placeholder="${performancePlaceholder}" name="performance_${index}" class="tracker-input" onkeyup="updateMetTarget(${index})">
+                </td>
+                <td>${contextDropdown}</td>
+                <td>${accommodationDropdown}</td>
+                <td class="target-met-cell" data-value="${targetMet}">${targetMet}</td>
+                <td><input type="text" value="${notesValue}" placeholder="Intervention notes, student comments" name="notes_${index}" class="tracker-input"></td>
+            </tr>
+        `;
+    }
+
+    function addRow() {
+        const selectedId = document.getElementById('goalSelect').value;
+        if (!selectedId) return alert("Please select a goal first.");
+        
+        maxDataRows++;
+        saveTrackerData(false); 
+        generateTracker();
+    }
+
+    function deleteLastRow() {
+        const selectedId = document.getElementById('goalSelect').value;
+        if (!selectedId) return alert("Please select a goal first.");
+
+        saveTrackerData(false); 
+
+        if (maxDataRows > 1) {
+            maxDataRows--;
+            generateTracker();
+        } else {
+            alert("The tracker must always display at least one row for data entry.");
+        }
+    }
+    
+    function updateMetTarget(index) {
+        const selectedId = document.getElementById('goalSelect').value;
+        const goal = getGoalById(selectedId);
+        if (!goal) return;
+
+        const dataTable = document.getElementById('dataTable');
+        const row = dataTable.querySelector(`tr[data-index="${index}"]`);
+        const performanceInput = row.querySelector(`input[name="performance_${index}"]`);
+        const targetCell = row.querySelector(`.target-met-cell`);
+        
+        const result = performanceInput.value.trim() ? checkTargetMet(goal, performanceInput.value.trim()) : '';
+        targetCell.textContent = result;
+        targetCell.setAttribute('data-value', result);
+    }
+
+    function checkTargetMet(goal, performance) {
+        if (!performance || goal.evaluationType === 'Review Goal') return 'Review Goal'; 
+        const targetPhrase = goal.targetPerformance.toLowerCase();
+
+        // 1. Accuracy Check 
+        if (goal.evaluationType === 'Accuracy') {
+            const targetParts = targetPhrase.match(/(\d+\/\d+)|(\d+%)/);
+            if (targetParts) {
+                let targetValue;
+                if (targetParts[1]) { 
+                    const [targetNum, targetDenom] = targetParts[1].split('/').map(n => parseInt(n));
+                    targetValue = targetNum / targetDenom;
+                } else if (targetParts[2]) { 
+                    targetValue = parseFloat(targetParts[2]) / 100;
+                } else { return 'Review Target'; }
+
+                const currentParts = performance.toLowerCase().match(/(\d+\/\d+)|(\d+%)/);
+                if (currentParts) {
+                    let currentValue;
+                    if (currentParts[1]) {
+                        const [currentNum, currentDenom] = currentParts[1].split('/').map(n => parseInt(n));
+                        currentValue = currentNum / currentDenom;
+                    } else if (currentParts[2]) {
+                        currentValue = parseFloat(currentParts[2]) / 100;
+                    } else { return 'Invalid Data'; }
+                    return currentValue >= targetValue ? '✔️ Yes' : '❌ No';
+                }
+            } else { return 'Review Target'; }
+        }
+        
+        // 2. Duration / Frequency Check 
+        if (goal.evaluationType === 'Duration' || goal.evaluationType === 'Frequency') {
+            const currentNumMatch = performance.match(/(\d+(\.\d+)?)/);
+            const targetNumMatch = targetPhrase.match(/(\d+(\.\d+)?)/);
+            
+            if (currentNumMatch && targetNumMatch) {
+                const currentNum = parseFloat(currentNumMatch[1]);
+                const targetNum = parseFloat(targetNumMatch[1]);
+                if (currentNum >= targetNum) { return '✔️ Yes'; }
+            }
+            return '❌ No';
+        }
+        
+        return 'Review Goal';
+    }
+    
+    function saveTrackerData(showAlert = true) {
+        const selectedId = document.getElementById('goalSelect').value;
+        const goal = getGoalById(selectedId);
+        if (!goal) return;
+
+        const newLog = [];
+        const dataTable = document.getElementById('dataTable');
+        
+        for (let i = 0; i < maxDataRows; i++) {
+            const row = dataTable.querySelector(`tr[data-index="${i}"]`);
+            if (!row) continue;
+
+            const dateInput = row.querySelector(`input[name="date_${i}"]`);
+            const performanceInput = row.querySelector(`input[name="performance_${i}"]`);
+            const contextInput = row.querySelector(`select[name="context_${i}"]`);
+            const accommodationInput = row.querySelector(`select[name="accommodation_${i}"]`);
+            const notesInput = row.querySelector(`input[name="notes_${i}"]`);
+            const targetMetCell = row.querySelector(`.target-met-cell`);
+            
+            const date = dateInput.value.trim();
+            const performance = performanceInput.value.trim();
+            // Get the selected text for print visibility
+            const context = contextInput.options[contextInput.selectedIndex].text; 
+            const accommodation = accommodationInput.options[accommodationInput.selectedIndex].text;
+            const notes = notesInput.value.trim();
+            const targetMet = targetMetCell.textContent;
+
+            if (date && performance) {
+                newLog.push({ date, performance, context, accommodation, notes, targetMet });
+            }
+        }
+
+        goal.dataLog = newLog;
+        generateTracker(); 
+
+        if (showAlert) {
+            alert(`Data for ${goal.studentName}'s goal (ID: ${goal.studentID}) updated. REMEMBER to use 'Save Page As' (Ctrl+S or Cmd+S) to preserve this data!`);
+        }
+    }
+
+    function printTracker() {
+        const selectedId = document.getElementById('goalSelect').value;
+        if (!selectedId) {
+            alert("Please select a student and goal to print.");
+            return;
+        }
+        // Save data first to ensure latest values are populated in the DOM
+        saveTrackerData(false); 
+        
+        setTimeout(function() {
+            window.print();
+        }, 100); 
+    }
+
+    // --- CSV EXPORT FUNCTIONS ---
+    
+    function convertToCSV(data, headers) {
+        const csv = [
+            headers.join(',')
+        ];
+        
+        data.forEach(row => {
+            const rowData = headers.map(header => {
+                let value = row[header] || '';
+                value = String(value).replace(/"/g, '""'); 
+                if (value.includes(',') || value.includes('\n')) {
+                    value = `"${value}"`; 
+                }
+                return value;
+            });
+            csv.push(rowData.join(','));
+        });
+        
+        return csv.join('\n');
+    }
+
+    function downloadCSV(csv, filename) {
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        
+        if (link.download !== undefined) { 
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', filename);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        } else {
+            alert("Your browser does not support automatic CSV download. Please copy the data manually.");
+        }
+    }
+
+    function exportCurrentGoalData() {
+        const selectedId = document.getElementById('goalSelect').value;
+        const goal = getGoalById(selectedId);
+        if (!goal) return alert("Please select a goal to export.");
+
+        saveTrackerData(false); 
+
+        const data = goal.dataLog;
+        const headers = [
+            'Student Name', 'Student ID', 'Goal Subject', 'Goal Statement', 'Target Performance', 'Mastery Criteria', 
+            'Date', 'Performance', 'Context', 'Accommodation', 'Goal Met', 'Observation Notes'
+        ];
+        
+        const exportData = data.map(log => ({
+            'Student Name': goal.studentName,
+            'Student ID': goal.studentID,
+            'Goal Subject': goal.goalSubjectArea,
+            'Goal Statement': log.existingGoalText || goal.existingGoalText, // Use log's if available, otherwise fallback
+            'Target Performance': goal.targetPerformance,
+            'Mastery Criteria': goal.masteryCriteria,
+            'Date': log.date,
+            'Performance': log.performance,
+            'Context': log.context,
+            'Accommodation': log.accommodation,
+            'Goal Met': log.targetMet,
+            'Observation Notes': log.notes
+        }));
+
+        const csv = convertToCSV(exportData, headers);
+        const filename = `${goal.studentName}_${goal.goalSubjectArea}_Data.csv`.replace(/[^a-zA-Z0-9_.]/g, '_');
+        downloadCSV(csv, filename);
+    }
+
+    function exportAllCaseloadData() {
+        if (caseload.length === 0) return alert("Caseload is empty. No data to export.");
+        
+        saveTrackerData(false);
+
+        const headers = [
+            'Student Name', 'Student ID', 'Goal Subject', 'Goal ID', 'Goal Statement', 'Timeframe', 'Baseline Data', 'Target Performance', 'Mastery Criteria', 'Metric Type', 
+            'Date', 'Performance', 'Context', 'Accommodation', 'Goal Met', 'Observation Notes'
+        ];
+        
+        let allExportData = [];
+
+        caseload.forEach(student => {
+            student.goals.forEach(goal => {
+                if (goal.dataLog.length === 0) {
+                     allExportData.push({
+                        'Student Name': student.studentName,
+                        'Student ID': student.studentID,
+                        'Goal Subject': goal.goalSubjectArea,
+                        'Goal ID': goal.id,
+                        'Goal Statement': goal.existingGoalText,
+                        'Timeframe': goal.timeFrame,
+                        'Baseline Data': goal.baselineData,
+                        'Target Performance': goal.targetPerformance,
+                        'Mastery Criteria': goal.masteryCriteria,
+                        'Metric Type': goal.evaluationType,
+                     });
+                     return;
+                }
+
+                goal.dataLog.forEach(log => {
+                    allExportData.push({
+                        'Student Name': student.studentName,
+                        'Student ID': student.studentID,
+                        'Goal Subject': goal.goalSubjectArea,
+                        'Goal ID': goal.id,
+                        'Goal Statement': goal.existingGoalText,
+                        'Timeframe': goal.timeFrame,
+                        'Baseline Data': goal.baselineData,
+                        'Target Performance': goal.targetPerformance,
+                        'Mastery Criteria': goal.masteryCriteria,
+                        'Metric Type': goal.evaluationType,
+                        'Date': log.date,
+                        'Performance': log.performance,
+                        'Context': log.context,
+                        'Accommodation': log.accommodation,
+                        'Goal Met': log.targetMet,
+                        'Observation Notes': log.notes
+                    });
+                });
+            });
+        });
+
+        const csv = convertToCSV(allExportData, headers);
+        const filename = `SpEd_All_Caseload_Data_${new Date().toISOString().slice(0, 10)}.csv`;
+        downloadCSV(csv, filename);
+    }
+    
+</script>
+
+</body>
+</html>
